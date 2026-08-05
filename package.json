@@ -1,0 +1,11 @@
+{
+  "name": "super-ko-boxing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Super KO Boxing — retro 3D boxing prototype (vanilla ES modules + Three.js via CDN, no build step)",
+  "scripts": {
+    "test": "node tests/combat.test.js",
+    "serve": "python3 -m http.server 8080"
+  }
+}

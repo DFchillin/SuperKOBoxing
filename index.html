@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Super KO Boxing — Prototype</title>
+  <link rel="stylesheet" href="style.css?v=1" />
+  <!-- No bundler: Three.js is a vendored ES module resolved via importmap, so the
+       prototype runs fully offline from any static file server. -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js?v=1"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game-canvas"></canvas>
+    <div id="hud"></div>
+    <div id="controls-card">
+      <div class="cc-title">SUPER KO BOXING · PROTOTYPE</div>
+      <div class="cc-grid">
+        <span>Move</span><b>W A S D</b>
+        <span>Left Jab</span><b>Q</b>
+        <span>Right Cross</span><b>E</b>
+        <span>Left Hook</span><b>Z</b>
+        <span>Right Hook</span><b>C</b>
+        <span>Body punch</span><b>Ctrl + Q/E</b>
+        <span>Block</span><b>Shift</b>
+        <span>Dodge</span><b>Space (+A/D)</b>
+        <span>Debug</span><b>` (backtick)</b>
+      </div>
+      <div class="cc-hint">Try the <b>One-Two Hook</b>: Q → E → Z quickly.</div>
+    </div>
+  </div>
+  <script type="module" src="src/main.js?v=1"></script>
+</body>
+</html>

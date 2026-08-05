@@ -1,0 +1,165 @@
+:root {
+  --gold: #f0c020;
+  --red: #c02434;
+  --blue: #2a5cff;
+  --ink: #0a0a12;
+  --panel: rgba(8, 10, 20, 0.72);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #05050a;
+  color: #fff;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#stage { position: fixed; inset: 0; }
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  background: #05050a;
+}
+
+/* ---------- HUD ---------- */
+#hud { position: absolute; inset: 0; pointer-events: none; }
+
+.hud-top {
+  position: absolute;
+  top: 14px; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 18px;
+  gap: 12px;
+}
+
+.hud-fighter { width: 40%; max-width: 360px; }
+.hud-fighter.right { text-align: right; }
+
+.hud-name {
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-size: 15px;
+  text-shadow: 2px 2px 0 #000;
+  text-transform: uppercase;
+}
+.hud-nick { color: var(--gold); font-weight: 700; }
+
+.hud-meter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #b9c2e0;
+}
+.hud-fighter.right .hud-meter { flex-direction: row-reverse; }
+
+.bar {
+  flex: 1;
+  height: 9px;
+  background: #1a1f33;
+  border: 1px solid #000;
+  box-shadow: inset 0 0 0 1px #2a3350;
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff5a5a, var(--red));
+  transition: width 0.12s linear;
+}
+.bar.body i { background: linear-gradient(90deg, #ffb14a, #d87a1a); }
+.bar.stam i { background: linear-gradient(90deg, #6cff8a, #22a04a); }
+.bar.grd i  { background: linear-gradient(90deg, #7fd0ff, #2a7cff); }
+
+.hud-kd { color: var(--red); font-size: 12px; margin-top: 2px; letter-spacing: 2px; }
+
+.hud-centre { text-align: center; min-width: 90px; }
+.hud-round {
+  font-size: 11px; letter-spacing: 2px; color: var(--gold);
+  font-weight: 800; text-shadow: 2px 2px 0 #000;
+}
+.hud-timer {
+  font-size: 40px; font-weight: 900; line-height: 1;
+  text-shadow: 3px 3px 0 #000; color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-combo {
+  position: absolute;
+  top: 40%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  font-size: 34px; font-weight: 900; letter-spacing: 2px;
+  color: var(--gold);
+  text-shadow: 3px 3px 0 #000, 0 0 18px rgba(240,192,32,0.7);
+  opacity: 0;
+  transition: opacity 0.12s, transform 0.12s;
+  text-transform: uppercase;
+}
+.hud-combo.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+.hud-announce {
+  position: absolute;
+  bottom: 22%; left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 22px;
+  background: var(--panel);
+  border: 2px solid var(--gold);
+  font-size: 20px; font-weight: 800; letter-spacing: 1px;
+  color: #fff; text-shadow: 2px 2px 0 #000;
+  opacity: 0; transition: opacity 0.2s;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.hud-announce.show { opacity: 1; }
+
+.hud-debug {
+  position: absolute;
+  bottom: 8px; left: 10px;
+  font-family: monospace; font-size: 11px;
+  color: #7fffa0; background: rgba(0,0,0,0.6);
+  padding: 6px 8px; display: none;
+  line-height: 1.5;
+}
+
+/* ---------- Controls card ---------- */
+#controls-card {
+  position: absolute;
+  right: 14px; bottom: 14px;
+  background: var(--panel);
+  border: 2px solid #2a3350;
+  border-top-color: var(--gold);
+  padding: 10px 12px;
+  font-size: 11px;
+  max-width: 220px;
+  pointer-events: none;
+}
+.cc-title {
+  color: var(--gold); font-weight: 800; letter-spacing: 1px;
+  font-size: 11px; margin-bottom: 6px;
+}
+.cc-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 10px;
+  color: #b9c2e0;
+}
+.cc-grid b { color: #fff; text-align: right; }
+.cc-hint { margin-top: 6px; color: var(--gold); font-size: 10px; }
+
+@media (max-width: 720px) {
+  #controls-card { display: none; }
+  .hud-name { font-size: 12px; }
+  .hud-timer { font-size: 28px; }
+}
