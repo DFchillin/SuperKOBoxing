@@ -89,7 +89,7 @@ export class FighterAI {
       // In range — attack.
       this.moveDir = { x: 0, z: (Math.random() < 0.3 ? (Math.random() < 0.5 ? 1 : -1) : 0) };
       this.aggressive = false;
-      if (Math.random() < this.p.aggression + this.difficulty * 0.2) {
+      if (Math.random() < this.p.aggression * 0.6 + this.difficulty * 0.15) {
         this._chooseOffence(dist);
       } else if (Math.random() < this.p.patience * 0.4) {
         f.blocking = true;

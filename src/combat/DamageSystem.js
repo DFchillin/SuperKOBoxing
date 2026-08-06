@@ -31,8 +31,8 @@ export const DamageSystem = {
     const healthFrac = 1 - fighter.health / Config.fighter.maxHealth;
     const chinResist = fighter.def.attributes.chin / 100;
     const stunFrac = fighter.stun / Config.knockdown.stunKnockdownThreshold;
-    let chance = (knockdownPower / 100) * (0.4 + healthFrac * 0.9 + stunFrac * 0.7);
-    chance *= 1 - chinResist * 0.55;
+    let chance = (knockdownPower / 100) * (0.22 + healthFrac * 0.85 + stunFrac * 0.7);
+    chance *= 1 - chinResist * 0.65;
     // Repeated knockdowns make the next one easier.
     chance *= 1 + fighter.knockdowns * 0.25;
     return Math.min(0.95, Math.max(0, chance));

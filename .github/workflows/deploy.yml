@@ -12,10 +12,12 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment; newer pushes supersede in-flight ones.
+# Allow one concurrent deployment. Do NOT cancel an in-flight run: cancelling a
+# Pages deployment mid-flight can wedge GitHub's deploy queue in
+# "deployment_queued" until it times out (this is GitHub's own recommendation).
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:

@@ -30,7 +30,7 @@ export class MatchScene {
     this.hud = new Hud(hudRoot, this.player, this.ai);
     this.input = new InputManager();
     this.audio = new AudioManager();
-    this.aiCtrl = new FighterAI(this.ai, 0.62);
+    this.aiCtrl = new FighterAI(this.ai, 0.4);
 
     this.round = 1;
     this.phase = 'intro';
@@ -67,8 +67,8 @@ export class MatchScene {
   }
 
   _placeCorners() {
-    this.player.pos = { x: -1.3, z: 0 };
-    this.ai.pos = { x: 1.3, z: 0 };
+    this.player.pos = { x: -1.75, z: 0 };
+    this.ai.pos = { x: 1.75, z: 0 };
     MovementSystem.updateFacing(this.player, this.ai);
   }
 
