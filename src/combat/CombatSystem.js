@@ -60,6 +60,18 @@ export const CombatSystem = {
       return { type: 'slip', side: defender.side, punch: punch.id };
     }
 
+    // Touch interrupt: a landed Touch snuffs out any punch the defender is still
+    // winding up (startup). It can't beat a committed punch already active.
+    let interrupted = false;
+    if (punch.interrupt) {
+      for (const key of ['left', 'right']) {
+        if (defender.hands[key].phase === 'startup') {
+          defender.cancelHand(key);
+          interrupted = true;
+        }
+      }
+    }
+
     // Base damage scaled by power and gas.
     let dmg = punch.baseDamage
       * (0.6 + attacker.attr('power') / 100 * 0.8)
@@ -122,7 +134,7 @@ export const CombatSystem = {
 
     return {
       type: 'hit', side: attacker.side, punch: punch.id, target: punch.target,
-      damage: dmg, blocked, counter, knockdown, combo: comboName,
+      damage: dmg, blocked, counter, knockdown, combo: comboName, interrupted,
     };
   },
 };

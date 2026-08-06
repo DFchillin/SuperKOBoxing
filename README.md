@@ -35,6 +35,7 @@ python3 -m http.server 8080      # or:  npm run serve
 | Left Hook | `Z` |
 | Right Hook | `C` |
 | Body punch (modifier) | hold `Ctrl` + `Q`/`E` |
+| **Touch** (fast lead-hand interrupt) | `F` |
 | Block (high guard) | `Shift` |
 | Dodge (direction from `A`/`D`) | `Space` |
 | Toggle debug overlay | `` ` `` (backtick) |
@@ -42,6 +43,20 @@ python3 -m http.server 8080      # or:  npm run serve
 
 **Try a combo:** `Q → E → Z` in quick succession triggers **One-Two Hook** for a
 damage + stun bonus (shown centre-screen).
+
+### Combat model (from the design notes)
+
+- **One punch active at a time.** The same hand must fully recover before it
+  throws again; the *opposite* hand may only start during the first punch's
+  **recovery** phase (the "cancel window"). This is what builds combos — you
+  chain hands through recovery, not by mashing both at once.
+- **Input buffering.** A press stays valid for a short window (`Config.input.bufferMs`)
+  and fires the instant a hand frees / a cancel window opens, so combos feel
+  responsive instead of dropping inputs.
+- **Touch (`F`).** A very fast lead-hand extension: minimal damage, used to
+  measure range and **interrupt** an opponent's punch *startup*. It can't beat a
+  committed punch that's already in its active frames — a hook or body shot
+  thrown into a Touch will land through it.
 
 ## Tests
 

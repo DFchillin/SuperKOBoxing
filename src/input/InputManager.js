@@ -11,6 +11,7 @@ const DEFAULT_MAP = {
   rightCross: 'KeyE',
   leftHook: 'KeyZ',
   rightHook: 'KeyC',
+  touch: 'KeyF',
   block: 'ShiftLeft',
   dodge: 'Space',
   bodyModifier: 'ControlLeft',
@@ -52,10 +53,14 @@ export class InputManager {
     if (this.held.has(e.code)) return; // ignore auto-repeat for edges
     this.held.add(e.code);
 
+    if (e.code === this.map.touch) {
+      this.punchQueue.push({ id: 'touch', t: performance.now() });
+      return;
+    }
     const body = this.held.has(this.map.bodyModifier);
     for (const [action, binding] of Object.entries(PUNCH_BINDINGS)) {
       if (e.code === this.map[action]) {
-        this.punchQueue.push(body ? binding.body : binding.normal);
+        this.punchQueue.push({ id: body ? binding.body : binding.normal, t: performance.now() });
         return;
       }
     }
@@ -77,10 +82,18 @@ export class InputManager {
     return this.held.has(this.map.block);
   }
 
-  consumePunches() {
-    const q = this.punchQueue;
-    this.punchQueue = [];
-    return q;
+  // Input buffering (design notes): a press stays valid for `bufferMs` so it can
+  // fire the moment a hand frees / a cancel window opens. MatchScene peeks the
+  // oldest still-valid press, and pops it once it successfully starts.
+  peekPunch(nowMs, bufferMs) {
+    while (this.punchQueue.length && nowMs - this.punchQueue[0].t > bufferMs) {
+      this.punchQueue.shift(); // drop stale presses
+    }
+    return this.punchQueue.length ? this.punchQueue[0].id : null;
+  }
+
+  popPunch() {
+    this.punchQueue.shift();
   }
 
   consumeDodge() {

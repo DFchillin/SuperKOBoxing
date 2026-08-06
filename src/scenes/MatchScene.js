@@ -118,9 +118,12 @@ export class MatchScene {
       this.player.blocking = this.input.isBlocking();
       const dodge = this.input.consumeDodge();
       if (dodge !== null) this.player.startDodge(dodge);
-      for (const id of this.input.consumePunches()) {
+      // Buffered punch: fire the oldest still-valid press; keep it queued if the
+      // one-active-punch rule blocks it for now (fires when the hand frees).
+      const id = this.input.peekPunch(now, Config.input.bufferMs);
+      if (id) {
         const p = PUNCHES[id];
-        if (p) this.player.startPunch(p.hand, p);
+        if (p && this.player.startPunch(p.hand, p)) this.input.popPunch();
       }
       const axis = this.input.axis();
       const fwd = Math.sign(this.ai.pos.x - this.player.pos.x) || 1;
@@ -171,6 +174,7 @@ export class MatchScene {
       this.hud.showCombo(ev.combo);
       this.audio.play({ type: 'combo' });
     }
+    if (ev.interrupted && ev.side === 'player') this.hud.showCombo('Interrupt');
     if (ev.knockdown) {
       this.hud.announce('DOWN!', 1200);
     }

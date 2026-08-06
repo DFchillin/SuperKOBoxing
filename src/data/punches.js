@@ -25,6 +25,18 @@
 
 /** @type {Record<string, PunchDef>} */
 export const PUNCHES = {
+  // Touch — a very fast lead-hand extension (design notes). Minimal damage; used
+  // to measure range and INTERRUPT an opponent's punch startup. Beaten by
+  // committed hooks/body shots (already active by the time a Touch lands).
+  touch: {
+    id: 'touch', name: 'Touch', hand: 'left', type: 'jab', target: 'head',
+    baseDamage: 1, staminaCost: 2,
+    startupMs: 45, activeMs: 60, recoveryMs: 120,
+    range: 1.65, accuracy: 0.95, knockdown: 0, stun: 1,
+    counterBonus: 1.1, guardVuln: 0.1,
+    interrupt: true,
+    anim: 'left_jab', sound: 'punch_light',
+  },
   left_jab: {
     id: 'left_jab', name: 'Jab', hand: 'left', type: 'jab', target: 'head',
     baseDamage: 5, staminaCost: 4,

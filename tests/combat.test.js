@@ -129,4 +129,35 @@ test('combat: block reduces incoming head damage', () => {
   } finally { Math.random = rnd; }
 });
 
+test('hands: only one punch active at a time (opposite hand waits for recovery)', () => {
+  const [a] = pair();
+  const jab = PUNCHES.left_jab;
+  const cross = PUNCHES.right_cross;
+  assert.ok(a.startPunch('left', jab));
+  // Left is in startup → the right hand is blocked.
+  assert.strictEqual(a.startPunch('right', cross), false);
+  a.update(jab.startupMs + 1); // left → active
+  assert.strictEqual(a.hands.left.phase, 'active');
+  assert.strictEqual(a.startPunch('right', cross), false); // still blocked while active
+  a.update(jab.activeMs + 1); // left → recovery (cancel window opens)
+  assert.strictEqual(a.hands.left.phase, 'recovery');
+  assert.strictEqual(a.startPunch('right', cross), true); // opposite hand may cancel
+});
+
+test('touch: a landed Touch interrupts an opponent’s punch startup', () => {
+  const rnd = Math.random;
+  Math.random = () => 0; // force the Touch to land
+  try {
+    const [a, b] = pair();
+    // Defender begins winding up a cross.
+    assert.ok(b.startPunch('right', PUNCHES.right_cross));
+    assert.strictEqual(b.hands.right.phase, 'startup');
+    // Attacker throws a Touch and it becomes active.
+    assert.ok(a.startPunch('left', PUNCHES.touch));
+    a.update(PUNCHES.touch.startupMs + 1);
+    CombatSystem.update([a, b], 100);
+    assert.strictEqual(b.hands.right.phase, 'idle', 'startup should be interrupted');
+  } finally { Math.random = rnd; }
+});
+
 console.log(`\n${passed} passing`);

@@ -68,10 +68,16 @@ export class Fighter {
   }
 
   // Attempt to begin a punch on the given hand. Returns true if it started.
+  // Combat rule (design notes): only one punch may be ACTIVE at a time.
+  //  - same hand must fully recover to idle before throwing again
+  //  - the opposite hand may only begin while the busy hand is in RECOVERY
+  //    (the "cancel window"); it is blocked during startup/active
   startPunch(handKey, punch) {
     if (!this.canAct()) return false;
     const hand = this.hands[handKey];
     if (hand.phase !== 'idle') return false;
+    const other = this.hands[handKey === 'left' ? 'right' : 'left'];
+    if (other.phase === 'startup' || other.phase === 'active') return false;
     if (this.stamina < punch.staminaCost * 0.5) return false; // too gassed to throw
     hand.phase = 'startup';
     hand.punch = punch;
@@ -96,6 +102,12 @@ export class Fighter {
 
   isDodging() {
     return this.dodge.active && this.dodge.timer > 0;
+  }
+
+  // Force a hand back to idle — used when a Touch interrupts its startup.
+  cancelHand(handKey) {
+    const h = this.hands[handKey];
+    h.phase = 'idle'; h.punch = null; h.timer = 0; h.extension = 0; h.resolved = false;
   }
 
   knockDown() {

@@ -99,6 +99,8 @@ export class FighterAI {
 
   _chooseOffence() {
     const f = this.f;
+    // Patient / counter styles feel out range with the Touch before committing.
+    if (Math.random() < this.p.patience * 0.35) { this._throw('touch'); return; }
     // Sometimes commit to a full unlocked combo, otherwise a single punch.
     const combos = f.def.unlockedCombos;
     if (Math.random() < this.p.comboBias && combos.length) {
