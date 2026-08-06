@@ -163,3 +163,88 @@ html, body {
   .hud-name { font-size: 12px; }
   .hud-timer { font-size: 28px; }
 }
+
+/* Hide the desktop key-legend once touch controls are active. */
+body.touch-mode #controls-card { display: none; }
+
+/* ---------- Mobile touch controls ---------- */
+.mobile-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* only the controls themselves take input */
+  z-index: 20;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.mobile-controls .mc-left {
+  position: absolute;
+  left: 14px; bottom: 16px;
+  display: flex; align-items: flex-end; gap: 10px;
+}
+.mobile-controls .mc-right {
+  position: absolute;
+  right: 14px; bottom: 16px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+}
+
+.mc-stick {
+  position: relative;
+  width: 128px; height: 128px;
+  border-radius: 50%;
+  background: rgba(10, 12, 22, 0.5);
+  border: 2px solid rgba(240, 192, 32, 0.55);
+  pointer-events: auto;
+  touch-action: none;
+}
+.mc-stick-knob {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4a5578, #1a2035);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.mc-util { display: flex; flex-direction: column; gap: 8px; }
+
+.mc-actions {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 8px;
+  justify-items: end;
+}
+
+.mc-btn {
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 72px;
+  padding: 14px 10px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(20, 24, 40, 0.72);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 0 #000;
+}
+.mc-btn.pressed, .mc-btn:active { transform: scale(0.94); filter: brightness(1.35); }
+.mc-btn.active { box-shadow: 0 0 0 2px var(--gold) inset; filter: brightness(1.2); }
+
+.mc-btn.a-jab   { border-color: #7fd0ff; }
+.mc-btn.a-cross { border-color: var(--red); min-width: 84px; }
+.mc-btn.a-hook  { border-color: #ffb14a; }
+.mc-btn.a-touch { border-color: #b9c2e0; }
+.mc-block { border-color: #2a7cff; }
+.mc-dodge { border-color: #6cff8a; }
+.mc-body  { border-color: var(--gold); align-self: flex-end; }
+
+/* Roomier hit targets on very small screens. */
+@media (max-width: 420px) {
+  .mc-stick { width: 108px; height: 108px; }
+  .mc-btn { min-width: 64px; padding: 12px 8px; font-size: 12px; }
+}

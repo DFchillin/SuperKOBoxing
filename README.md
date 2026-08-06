@@ -44,6 +44,15 @@ python3 -m http.server 8080      # or:  npm run serve
 **Try a combo:** `Q → E → Z` in quick succession triggers **One-Two Hook** for a
 damage + stun bonus (shown centre-screen).
 
+### Mobile / touch controls
+
+On touch devices an on-screen overlay appears automatically (force it on desktop
+with `?touch=1`): a **movement thumbstick** on the left plus **BLOCK** (hold) and
+**DODGE**, and an action cluster on the right — **JAB, CROSS, L·HOOK, R·HOOK,
+TOUCH**, with a **BODY** toggle that routes jab/cross to body shots. It only feeds
+the shared `InputManager` touch API, so gameplay is identical to the keyboard.
+Landscape orientation is recommended (the match view is 16:9).
+
 ### Combat model (from the design notes)
 
 - **One punch active at a time.** The same hand must fully recover before it

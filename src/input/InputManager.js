@@ -33,6 +33,11 @@ export class InputManager {
     this.dodgeQueue = [];
     this.enabled = true;
 
+    // Touch overlay state (set by MobileControls). Movement from the thumbstick
+    // overrides the keyboard axis while it is engaged.
+    this.touchAxis = { x: 0, z: 0 };
+    this.touchBlock = false;
+
     this._onDown = (e) => this._keydown(e);
     this._onUp = (e) => this.held.delete(e.code);
     window.addEventListener('keydown', this._onDown);
@@ -72,15 +77,23 @@ export class InputManager {
   }
 
   // Logical movement axis: x = forward(+)/back(-), z = strafe right(+)/left(-).
+  // The touch thumbstick takes over while engaged; otherwise the keyboard drives.
   axis() {
+    if (Math.hypot(this.touchAxis.x, this.touchAxis.z) > 0.12) return this.touchAxis;
     const x = (this.held.has(this.map.forward) ? 1 : 0) - (this.held.has(this.map.back) ? 1 : 0);
     const z = (this.held.has(this.map.right) ? 1 : 0) - (this.held.has(this.map.left) ? 1 : 0);
     return { x, z };
   }
 
   isBlocking() {
-    return this.held.has(this.map.block);
+    return this.touchBlock || this.held.has(this.map.block);
   }
+
+  // --- Touch overlay API (used by MobileControls) ---
+  setTouchAxis(x, z) { this.touchAxis.x = x; this.touchAxis.z = z; }
+  setTouchBlock(on) { this.touchBlock = !!on; }
+  queuePunch(id) { if (this.enabled) this.punchQueue.push({ id, t: performance.now() }); }
+  queueDodge(dir) { if (this.enabled) this.dodgeQueue.push(dir); }
 
   // Input buffering (design notes): a press stays valid for `bufferMs` so it can
   // fire the moment a hand frees / a cancel window opens. MatchScene peeks the
