@@ -9,6 +9,9 @@ two billboard-sprite fighters in a 3D venue, movement, punches, blocking, dodgin
 stamina, head/body damage, combo recognition, knockdowns, rounds, judge scoring and
 a basic tactical AI.
 
+**▶ Play online:** https://dfchillin.github.io/SuperKOBoxing/ *(published by GitHub
+Pages once enabled — see [Deployment](#deployment)).*
+
 ## Running it locally
 
 No build step. It's vanilla ES modules; Three.js is vendored in `vendor/` and
@@ -48,6 +51,20 @@ and is unit-tested with the Node test runner — no framework, no install:
 ```bash
 npm test        # node tests/combat.test.js
 ```
+
+## Deployment
+
+The site is static, so it deploys to **GitHub Pages** with no build step. A workflow
+at `.github/workflows/deploy.yml` publishes the repo root on every push to `main`.
+
+**One-time setup:** in the repo, go to **Settings → Pages → Build and deployment →
+Source** and select **GitHub Actions**. The next push (or a manual
+*Actions → Deploy to GitHub Pages → Run workflow*) publishes to
+`https://dfchillin.github.io/SuperKOBoxing/`.
+
+> GitHub Pages for a **private** repo requires a paid plan (GitHub Pro/Team). On a
+> free account, either make the repo public or host the static files on Netlify /
+> Vercel / Cloudflare Pages instead (all serve this repo as-is, no build command).
 
 ## Architecture
 
