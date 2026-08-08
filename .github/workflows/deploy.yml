@@ -1,46 +1,40 @@
-name: Deploy to GitHub Pages
+name: Deploy to Live
 
-# Publishes the static game (HTML + JS + vendored Three.js) to GitHub Pages on
-# every push to main. No build step — the repo root is served as-is.
+# Mirrors the 7PXL Rugby deploy: FTP the static game to the Xleaguerl webspace on
+# every push to main — into its own folder, alongside the rugby game.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow one concurrent deployment. Do NOT cancel an in-flight run: cancelling a
-# Pages deployment mid-flight can wedge GitHub's deploy queue in
-# "deployment_queued" until it times out (this is GitHub's own recommendation).
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  deploy:
+  deploy-game:
+    name: Deploy Game Files
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      - name: Cache-bust asset versions in index.html
+        run: |
+          HASH=$(git rev-parse --short HEAD)
+          sed -i "s/\?v=[0-9a-zA-Z]*/\?v=$HASH/g" index.html
+          echo "Cache-bust version: $HASH"
+
+      - name: FTP Deploy Game
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          # Enable Pages (build type = GitHub Actions) via the workflow token,
-          # so no manual Settings → Pages toggle is needed.
-          enablement: true
-
-      - name: Upload site artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /webspace/siteapps/WordPress-174457/htdocs/SuperKOBoxing/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            tests/**
+            node_modules/**
+            package.json
+            package-lock.json
+            .gitignore
+            .nojekyll
+            README.md
