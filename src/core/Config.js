@@ -29,13 +29,23 @@ export const Config = {
 
   // Fighter physics / spacing
   fighter: {
-    baseMoveSpeed: 2.2, // units/sec at movementSpeed attribute 50
-    clinchRange: 0.55,
+    baseMoveSpeed: 1.7, // units/sec at movementSpeed 50 (slower, deliberate footwork)
+    clinchRange: 0.5,
     maxHealth: 100,
     maxStamina: 100,
     // Head/body damage feed a shared health pool but with different weights.
     headDamageWeight: 1.0,
     bodyDamageWeight: 0.75,
+  },
+
+  // Range bands (distance between fighters, world units) — inside vs outside.
+  // Straights own the outside; hooks/uppercuts/body own the inside. Being at the
+  // wrong range whiffs (via each punch's own range) or gets penalised below.
+  combat: {
+    insideMax: 0.95,   // at/below this = "inside"
+    outsideMin: 1.35,  // at/above this = "outside"
+    straightCrampedMult: 0.6, // straights lose power when jammed inside
+    insideHookBonus: 1.15,    // hooks/body reward getting inside
   },
 
   // Stamina economy

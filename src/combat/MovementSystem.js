@@ -4,39 +4,33 @@ import { StaminaSystem } from './StaminaSystem.js';
 const HALF = Config.ring.halfSize;
 const MIN_SEP = Config.fighter.clinchRange; // fighters can't fully overlap
 
-// Owns ring movement, boundary/rope handling and fighter separation. Shared by
-// both the player input path and the AI so behaviour stays consistent.
+// Side-view footwork: movement is locked to the horizontal (x) axis. Closing and
+// opening distance IS the game — there is no depth movement. `h` is a signed
+// horizontal intent (-1 left … +1 right).
 export const MovementSystem = {
-  move(fighter, dir, dtMs, aggressive) {
+  move(fighter, h, dtMs, aggressive) {
     const dt = dtMs / 1000;
-    fighter.move.x = 0; fighter.move.z = 0;
+    fighter.move.x = 0;
     fighter.movingAggressively = false;
+    fighter.pos.z = 0; // stay on the fight plane
     if (fighter.down || fighter.stunned) return;
+    if (Math.abs(h) < 0.05) return;
 
-    const len = Math.hypot(dir.x, dir.z);
-    if (len < 0.001) return;
-
-    const nx = dir.x / len;
-    const nz = dir.z / len;
-
+    const dir = Math.sign(h);
     const base = Config.fighter.baseMoveSpeed * (fighter.attr('movementSpeed') / 50);
-    const speed = base * StaminaSystem.speedMult(fighter);
-    let step = speed * dt;
+    let step = base * StaminaSystem.speedMult(fighter) * dt;
 
-    // Against-the-ropes: backward movement (away from opponent) is throttled.
-    const towardOpp = Math.sign(fighter.opponent.pos.x - fighter.pos.x);
+    // Against the ropes: retreating (moving away from the opponent) is throttled.
+    const towardOpp = Math.sign(fighter.opponent.pos.x - fighter.pos.x) || 1;
     const nearRope = Math.abs(fighter.pos.x) > HALF - 0.4;
-    if (nearRope && Math.sign(nx) === -towardOpp) step *= 0.45;
+    if (nearRope && dir === -towardOpp) step *= 0.45;
 
-    fighter.pos.x += nx * step;
-    fighter.pos.z += nz * step;
-
-    fighter.move.x = nx;
-    fighter.move.z = nz;
+    fighter.pos.x += dir * step;
+    fighter.move.x = dir;
 
     if (aggressive) {
       fighter.movingAggressively = true;
-      StaminaSystem.spend(fighter, 2.5 * dt);
+      StaminaSystem.spend(fighter, 2.0 * dt);
     }
 
     this._constrain(fighter);
@@ -44,23 +38,21 @@ export const MovementSystem = {
 
   _constrain(fighter) {
     fighter.pos.x = Math.max(-HALF, Math.min(HALF, fighter.pos.x));
-    fighter.pos.z = Math.max(-HALF * 0.6, Math.min(HALF * 0.6, fighter.pos.z));
+    fighter.pos.z = 0;
 
-    // Keep fighters from occupying the same spot.
+    // Keep fighters from crossing over on the single axis.
     const opp = fighter.opponent;
     const dx = fighter.pos.x - opp.pos.x;
-    const dz = fighter.pos.z - opp.pos.z;
-    const d = Math.hypot(dx, dz);
+    const d = Math.abs(dx);
     if (d < MIN_SEP && d > 0.0001) {
       const push = (MIN_SEP - d) / 2;
-      fighter.pos.x += (dx / d) * push;
-      fighter.pos.z += (dz / d) * push;
-      opp.pos.x -= (dx / d) * push;
-      opp.pos.z -= (dz / d) * push;
+      const s = Math.sign(dx);
+      fighter.pos.x += s * push;
+      opp.pos.x -= s * push;
     }
   },
 
-  // Fighters always logically face each other (used for sprite mirroring).
+  // Fighters always face each other (drives the sprite profile mirroring).
   updateFacing(a, b) {
     const sign = a.pos.x <= b.pos.x ? 1 : -1;
     a.facing = sign;

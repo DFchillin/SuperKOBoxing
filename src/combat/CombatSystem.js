@@ -79,6 +79,17 @@ export const CombatSystem = {
     let stun = punch.stun;
     let blocked = false;
 
+    // Inside / outside: straights get cramped when jammed close; hooks & body
+    // shots are rewarded for getting inside. This is what makes range matter
+    // beyond the raw reach check.
+    const dist = Math.abs(attacker.pos.x - defender.pos.x);
+    if (dist < Config.combat.insideMax) {
+      if (punch.type === 'jab' || punch.type === 'cross') dmg *= Config.combat.straightCrampedMult;
+      else if (['hook', 'body_hook', 'body_straight', 'uppercut'].includes(punch.type)) {
+        dmg *= Config.combat.insideHookBonus;
+      }
+    }
+
     // Counter bonus: caught the defender mid-commitment.
     const defenderCommitted =
       defender.hands.left.phase !== 'idle' || defender.hands.right.phase !== 'idle';

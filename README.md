@@ -1,13 +1,19 @@
 # Super KO Boxing — Prototype
 
-A browser-based retro 3D boxing game with **semi-independent hand control** and a
-**data-driven combo system**. Original fighters, artwork and mechanics — inspired by
-the movement/control philosophy of classic 3D boxing, not derived from it.
+A browser-based retro boxing game: a **side-on, Street-Fighter-style** view rendered
+in a Three.js ring, with **semi-independent "reloading" hands**, **footwork-based
+range** (inside vs outside), and a **data-driven combo system**. Original fighters,
+artwork and mechanics.
 
-This is the **first playable prototype** (Milestones 1–5 of the brief): one ring,
-two billboard-sprite fighters in a 3D venue, movement, punches, blocking, dodging,
-stamina, head/body damage, combo recognition, knockdowns, rounds, judge scoring and
-a basic tactical AI.
+**The core loop:** it's a deliberate, cerebral match. You move on one axis to manage
+distance. **Straights (jab/cross) reach from the outside; hooks and body shots only
+land inside** — so footwork creates the openings. Only one hand is live at a time;
+the other reloads through its recovery, and combos come from chaining through those
+windows.
+
+This is a prototype: one ring, two profile-sprite fighters, footwork, punches,
+blocking, dodging, the Touch interrupt, stamina, head/body damage, combo recognition,
+knockdowns, rounds, judge scoring and a patient tactical AI.
 
 **▶ Play online:** https://dfchillin.github.io/SuperKOBoxing/ *(published by GitHub
 Pages once enabled — see [Deployment](#deployment)).*

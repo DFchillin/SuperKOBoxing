@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
-// Procedural placeholder pixel-boxer. Draws to a small canvas each frame and
-// exposes it as a billboard THREE.Sprite. Swap this whole module for real
-// sprite-sheet playback later without touching game logic.
+// Procedural placeholder pixel-boxer drawn in SIDE PROFILE (Street-Fighter style)
+// facing the opponent. Draws to a small canvas each frame and exposes it as a
+// billboard sprite. Swap this module for real sprite-sheet playback later.
 
-const CW = 96;  // canvas pixel width
+const CW = 112; // canvas pixel width
 const CH = 144; // canvas pixel height
+const GLOVE = 13;
 
 export class FighterSprite {
   constructor(fighter) {
@@ -23,13 +24,15 @@ export class FighterSprite {
 
     const mat = new THREE.SpriteMaterial({ map: this.texture, transparent: true });
     this.sprite = new THREE.Sprite(mat);
-    this.sprite.scale.set(1.5, 2.25, 1);
-    this.bob = 0;
+    this.sprite.scale.set(1.75, 2.25, 1);
   }
 
-  _px(x, y, w, h, color) {
+  // Draw a rect given in "facing-right" local coords (local +x = toward opponent),
+  // auto-mirrored when the fighter faces left.
+  _rect(lx, y, w, h, color) {
+    const left = this._cx + (this._dir > 0 ? lx : -(lx + w));
     this.ctx.fillStyle = color;
-    this.ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    this.ctx.fillRect(Math.round(left), Math.round(y), Math.round(w), Math.round(h));
   }
 
   redraw(nowMs) {
@@ -38,90 +41,96 @@ export class FighterSprite {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, CW, CH);
 
-    const dir = f.facing; // +1 opponent on the right
-    const cx = CW / 2;
+    this._dir = f.facing; // +1 faces right, -1 faces left
+    this._cx = CW / 2;
 
-    // Hurt flash: full-body red tint frames.
     const flash = f.hitFlash > 0 && Math.floor(nowMs / 60) % 2 === 0;
     const skin = flash ? '#ff5a5a' : c.skin;
+    const skinDark = flash ? '#c83030' : this._shade(c.skin, -0.18);
+    const pants = '#26262f';
 
-    if (f.down) { this._drawDown(dir, c, skin); this.texture.needsUpdate = true; return; }
+    if (f.down) { this._drawDown(c, skin); this.texture.needsUpdate = true; return; }
 
-    // Idle bob + defensive lean/dodge sway.
-    this.bob = Math.sin(nowMs / 260) * 2;
-    let sway = f.lean * 8;
-    if (f.isDodging()) sway += f.dodge.dir * 14;
-    const stunSway = f.stunned ? Math.sin(nowMs / 90) * 6 : 0;
-    const ox = sway + stunSway;
-    const oy = this.bob;
+    // Idle sway + a "slip" when dodging (lean the head/hands back off the centre-line).
+    const sway = Math.sin(nowMs / 320) * 1.5;
+    const slip = f.isDodging() ? -10 : 0;
+    const stun = f.stunned ? Math.sin(nowMs / 90) * 5 : 0;
+    const headShift = slip + stun;
 
-    // Legs.
-    this._px(cx - 16 + ox * 0.4, 104 + oy * 0.2, 12, 34, '#2a2a33');
-    this._px(cx + 4 + ox * 0.4, 104 + oy * 0.2, 12, 34, '#2a2a33');
-    // Boots.
-    this._px(cx - 18 + ox * 0.4, 134, 16, 8, c.accent);
-    this._px(cx + 4 + ox * 0.4, 134, 16, 8, c.accent);
+    // Legs — staggered orthodox stance (rear foot back, lead foot forward).
+    this._rect(-17, 104, 10, 34, pants);         // rear thigh/shin
+    this._rect(5, 104, 10, 34, pants);           // lead thigh/shin
+    this._rect(-19, 134, 15, 8, c.accent);       // rear boot
+    this._rect(5, 134, 15, 8, c.accent);         // lead boot
 
     // Trunks.
-    this._px(cx - 18 + ox, 86 + oy * 0.5, 36, 24, c.trunks);
-    this._px(cx - 18 + ox, 86 + oy * 0.5, 36, 4, c.accent);
+    this._rect(-15, 88, 27, 22, c.trunks);
+    this._rect(-15, 88, 27, 4, c.accent);
 
-    // Torso.
-    this._px(cx - 16 + ox, 54 + oy, 32, 34, skin);
+    // Torso, leaning slightly forward toward the opponent.
+    this._rect(-12 + sway * 0.3, 66, 25, 24, skin);
+    this._rect(-8 + sway * 0.5, 52, 22, 16, skin);
+    this._rect(-13, 66, 3, 24, skinDark);        // back-muscle shade
 
-    // Head.
-    this._px(cx - 11 + ox, 30 + oy, 22, 24, skin);
-    // Eyes / brow (facing direction).
-    this._px(cx - 6 + dir * 3 + ox, 40 + oy, 4, 4, '#1a1a1a');
-    this._px(cx + 2 + dir * 3 + ox, 40 + oy, 4, 4, '#1a1a1a');
+    // Neck + head (profile with a nose bump and chin toward the opponent).
+    const hx = sway + headShift;
+    this._rect(1 + hx, 46, 8, 8, skin);          // neck
+    this._rect(2 + hx, 28, 20, 22, skin);        // head
+    this._rect(22 + hx, 34, 4, 7, skin);         // nose/brow bump (forward)
+    this._rect(2 + hx, 30, 4, 8, skinDark);      // back of skull shade
+    this._rect(13 + hx, 36, 4, 4, '#141414');    // eye
+    this._rect(3 + hx, 24, 15, 5, skinDark);     // hair
 
-    // Gloves.
-    this._drawGlove(f, 'left', dir, cx, ox, oy, c);
-    this._drawGlove(f, 'right', dir, cx, ox, oy, c);
+    // Arms: rear first (behind), then lead on top.
+    this._drawArm(f, 'right', false, hx, c, skin);
+    this._drawArm(f, 'left', true, hx, c, skin);
 
     this.texture.needsUpdate = true;
   }
 
-  _drawGlove(f, key, dir, cx, ox, oy, colors) {
+  _drawArm(f, key, isLead, hx, colors, skin) {
     const hand = f.hands[key];
-    // Neutral guard position: gloves up by the chin.
-    let gx = cx + (key === 'left' ? -14 : 6) + ox;
-    let gy = 48 + oy;
-    const size = 14;
+    const shoulder = isLead ? { x: 2, y: 58 } : { x: -6, y: 56 };
+    let gx = isLead ? 14 : 5;
+    let gy = isLead ? 50 : 46;
 
-    const blocking = f.blocking && hand.phase === 'idle';
-    if (blocking) {
-      // Both gloves pulled tight in front of the face.
-      gx = cx - 4 + (key === 'left' ? -6 : 6) + ox;
-      gy = 34 + oy;
-    }
+    const guardUp = (f.blocking && hand.phase === 'idle');
+    if (guardUp) { gx = isLead ? 15 : 11; gy = isLead ? 36 : 33; }
 
     if (hand.phase !== 'idle' && hand.punch) {
       const p = hand.punch;
       const ext = hand.extension;
-      const armLen = 34;
-      gx = cx + dir * ext * armLen + (key === 'left' ? -6 : 2) + ox;
-      if (p.type === 'hook') {
-        gy = 44 - Math.sin(ext * Math.PI) * 8 + oy; // arcs across
-        gx += dir * 6 * ext;
-      } else if (p.target === 'body') {
-        gy = 70 + oy; // dig to the body
-      } else {
-        gy = 46 + oy; // straight punch stays level
-      }
+      const armLen = isLead ? 28 : 33;
+      const base = isLead ? 12 : 4;
+      if (p.type === 'hook') { gx = base + ext * armLen * 0.85; gy = 40 - Math.sin(ext * Math.PI) * 4; }
+      else if (p.target === 'body') { gx = base + ext * armLen; gy = 72; }
+      else { gx = base + ext * armLen; gy = 48; } // straight (jab/cross/touch)
     }
+    gx += hx * 0.5;
 
-    this._px(gx, gy, size, size, colors.gloves);
-    this._px(gx, gy, size, 3, colors.accent);
+    // Forearm: a bar connecting shoulder to glove.
+    const a = Math.min(shoulder.x, gx);
+    const b = Math.max(shoulder.x, gx) + GLOVE;
+    this._rect(a, gy + GLOVE / 2 - 2, b - a, 5, skin);
+    // Glove with a bright knuckle edge on the forward side.
+    this._rect(gx, gy, GLOVE, GLOVE, colors.gloves);
+    this._rect(gx + GLOVE - 3, gy, 3, GLOVE, colors.accent);
   }
 
-  _drawDown(dir, c, skin) {
-    // Simple prone figure lying along the canvas bottom.
-    const y = 118;
-    this._px(30, y, 40, 14, skin);        // torso
-    this._px(20 + (dir > 0 ? 44 : -12), y, 18, 14, skin); // head to one side
-    this._px(40, y + 14, 34, 8, c.trunks);
-    this._px(28, y - 8, 12, 12, c.gloves);
-    this._px(64, y - 8, 12, 12, c.gloves);
+  _drawDown(c, skin) {
+    // Prone figure lying toward the mat, head to the forward side.
+    this._rect(-30, 120, 46, 14, skin);   // torso
+    this._rect(16, 116, 16, 16, skin);    // head forward
+    this._rect(-28, 134, 40, 8, c.trunks);
+    this._rect(-34, 118, 12, 12, c.gloves);
+  }
+
+  _shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    r = Math.max(0, Math.min(255, r + amt * 255));
+    g = Math.max(0, Math.min(255, g + amt * 255));
+    b = Math.max(0, Math.min(255, b + amt * 255));
+    return `rgb(${r | 0},${g | 0},${b | 0})`;
   }
 }

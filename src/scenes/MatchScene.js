@@ -67,8 +67,8 @@ export class MatchScene {
   }
 
   _placeCorners() {
-    this.player.pos = { x: -1.75, z: 0 };
-    this.ai.pos = { x: 1.75, z: 0 };
+    this.player.pos = { x: -1.6, z: 0 };
+    this.ai.pos = { x: 1.6, z: 0 };
     MovementSystem.updateFacing(this.player, this.ai);
   }
 
@@ -127,13 +127,16 @@ export class MatchScene {
       }
       const axis = this.input.axis();
       const fwd = Math.sign(this.ai.pos.x - this.player.pos.x) || 1;
-      MovementSystem.move(this.player, { x: axis.x * fwd, z: axis.z }, dtMs, false);
+      // Footwork on one axis: horizontal input, plus vertical mapped to advance/
+      // retreat toward the opponent so the stick or W/S both feel natural.
+      const h = Math.max(-1, Math.min(1, axis.z + axis.x * fwd));
+      MovementSystem.move(this.player, h, dtMs, false);
     }
 
     // --- AI intent ---
     this.aiCtrl.update(dtMs);
     if (this.ai.canAct()) {
-      MovementSystem.move(this.ai, this.aiCtrl.moveDir, dtMs, this.aiCtrl.aggressive);
+      MovementSystem.move(this.ai, this.aiCtrl.moveH, dtMs, this.aiCtrl.aggressive);
     }
 
     MovementSystem.updateFacing(this.player, this.ai);

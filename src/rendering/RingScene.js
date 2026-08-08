@@ -15,11 +15,14 @@ export class RingScene {
     );
 
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(Config.render.clearColor, 8, 22);
+    this.scene.fog = new THREE.Fog(Config.render.clearColor, 10, 26);
 
-    this.camera = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 100);
-    this.camera.position.set(0, 3.0, 6.2);
-    this.camera.lookAt(0, 1.1, 0);
+    // Locked side-on view: a flat, near-eye-level camera looking straight across
+    // the ring so fighters read as 2D profiles (Street-Fighter style). The narrow
+    // FOV flattens perspective toward an orthographic look.
+    this.camera = new THREE.PerspectiveCamera(28, 16 / 9, 0.1, 100);
+    this.camera.position.set(0, 1.55, 9.2);
+    this.camera.lookAt(0, 1.25, 0);
 
     this._buildLights();
     this._buildRing();
@@ -88,6 +91,9 @@ export class RingScene {
       for (let i = 0; i < posts.length; i++) {
         const a = posts[i];
         const b = posts[(i + 1) % posts.length];
+        // Skip the near-side rope run (both posts at +z) so it doesn't draw in
+        // front of the fighters in the side view — keep the open camera side clear.
+        if (a.z > 0 && b.z > 0) continue;
         const len = Math.hypot(b.x - a.x, b.z - a.z);
         const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, len, 6), ropeMat);
         rope.position.set((a.x + b.x) / 2, y, (a.z + b.z) / 2);

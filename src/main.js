@@ -6,8 +6,7 @@ function wantsTouchControls() {
   const forced = new URLSearchParams(location.search).has('touch');
   const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   const touchCapable = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  const smallScreen = Math.min(window.innerWidth, window.innerHeight) < 820;
-  return forced || coarse || touchCapable || smallScreen;
+  return forced || coarse || touchCapable;
 }
 
 // Boot the prototype: one local player-vs-AI Quick Fight.
