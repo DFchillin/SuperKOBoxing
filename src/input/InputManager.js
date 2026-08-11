@@ -1,3 +1,5 @@
+import { Config } from '../core/Config.js';
+
 // Keyboard input, kept configurable so gamepad support can slot in later.
 // Movement/block are polled as held state; punches/dodge are queued as edges and
 // consumed once per frame.
@@ -58,14 +60,11 @@ export class InputManager {
     if (this.held.has(e.code)) return; // ignore auto-repeat for edges
     this.held.add(e.code);
 
-    if (e.code === this.map.touch) {
-      this.punchQueue.push({ id: 'touch', t: performance.now() });
-      return;
-    }
+    if (e.code === this.map.touch) { this._enqueue('touch'); return; }
     const body = this.held.has(this.map.bodyModifier);
     for (const [action, binding] of Object.entries(PUNCH_BINDINGS)) {
       if (e.code === this.map[action]) {
-        this.punchQueue.push({ id: body ? binding.body : binding.normal, t: performance.now() });
+        this._enqueue(body ? binding.body : binding.normal);
         return;
       }
     }
@@ -92,22 +91,31 @@ export class InputManager {
   // --- Touch overlay API (used by MobileControls) ---
   setTouchAxis(x, z) { this.touchAxis.x = x; this.touchAxis.z = z; }
   setTouchBlock(on) { this.touchBlock = !!on; }
-  queuePunch(id) { if (this.enabled) this.punchQueue.push({ id, t: performance.now() }); }
+  queuePunch(id) { this._enqueue(id); }
   queueDodge(dir) { if (this.enabled) this.dodgeQueue.push(dir); }
 
-  // Input buffering (design notes): a press stays valid for `bufferMs` so it can
-  // fire the moment a hand frees / a cancel window opens. MatchScene peeks the
-  // oldest still-valid press, and pops it once it successfully starts.
-  peekPunch(nowMs, bufferMs) {
-    while (this.punchQueue.length && nowMs - this.punchQueue[0].t > bufferMs) {
-      this.punchQueue.shift(); // drop stale presses
+  // Punch queue: presses stack up (capped depth) and fire in order as each hand
+  // reloads and the one-active rule allows — so "jab, jab" throws both as soon as
+  // the lead hand is free again. Naturally exposing: you keep spending hands.
+  _enqueue(id) {
+    if (!this.enabled) return;
+    if (this.punchQueue.length >= Config.input.queueLen) return; // don't over-stack
+    this.punchQueue.push({ id, t: performance.now() });
+  }
+
+  // Oldest still-valid queued punch (drops entries older than the queue lifetime).
+  peekPunch(nowMs, lifetimeMs) {
+    while (this.punchQueue.length && nowMs - this.punchQueue[0].t > lifetimeMs) {
+      this.punchQueue.shift();
     }
     return this.punchQueue.length ? this.punchQueue[0].id : null;
   }
 
-  popPunch() {
-    this.punchQueue.shift();
-  }
+  popPunch() { this.punchQueue.shift(); }
+
+  queuedCount() { return this.punchQueue.length; }
+
+  clearQueue() { this.punchQueue.length = 0; }
 
   consumeDodge() {
     if (!this.dodgeQueue.length) return null;

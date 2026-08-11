@@ -84,8 +84,11 @@ export const Config = {
   },
 
   input: {
-    // milliseconds a queued input stays valid before being dropped
-    bufferMs: 140,
+    // Punch queue: how many presses can stack, and how long each stays valid
+    // while it waits for its hand to reload. Short + shallow so a queue is a
+    // ~1s commitment, not a pre-programmed flurry.
+    queueLen: 3,
+    queueMs: 1200,
   },
 
   debug: false,

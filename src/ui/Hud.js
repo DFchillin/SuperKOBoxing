@@ -40,7 +40,7 @@ export class Hud {
         <div class="hud-meter"><span>BODY</span><div class="bar body"><i id="${id}-body"></i></div></div>
         <div class="hud-meter"><span>STAM</span><div class="bar stam"><i id="${id}-stam"></i></div></div>
         <div class="hud-meter"><span>GRD</span><div class="bar grd"><i id="${id}-grd"></i></div></div>
-        <div class="hud-hands"><span>HANDS</span><i class="pip" id="${id}-hl">L</i><i class="pip" id="${id}-hr">R</i></div>
+        <div class="hud-hands"><span>HANDS</span><i class="pip" id="${id}-hl">L</i><i class="pip" id="${id}-hr">R</i><span class="hud-queue" id="${id}-queue"></span></div>
         <div class="hud-kd" id="${id}-kd"></div>
       </div>`;
   }
@@ -96,6 +96,12 @@ export class Hud {
 
   setRound(n, total) {
     this.el.round.textContent = `ROUND ${n}/${total}`;
+  }
+
+  // Small queued-punch readout for the player (how many shots are committed).
+  setQueue(n) {
+    if (!this.el.pQueue) this.el.pQueue = this.el.p.hl.parentElement.querySelector('.hud-queue');
+    this.el.pQueue.textContent = n > 0 ? '▸'.repeat(n) : '';
   }
 
   update(dtMs, roundTime) {

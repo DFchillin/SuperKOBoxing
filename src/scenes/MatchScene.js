@@ -120,11 +120,12 @@ export class MatchScene {
       if (dodge !== null) this.player.startDodge(dodge);
       // Buffered punch: fire the oldest still-valid press; keep it queued if the
       // one-active-punch rule blocks it for now (fires when the hand frees).
-      const id = this.input.peekPunch(now, Config.input.bufferMs);
+      const id = this.input.peekPunch(now, Config.input.queueMs);
       if (id) {
         const p = PUNCHES[id];
         if (p && this.player.startPunch(p.hand, p)) this.input.popPunch();
       }
+      this.hud.setQueue(this.input.queuedCount());
       const axis = this.input.axis();
       const fwd = Math.sign(this.ai.pos.x - this.player.pos.x) || 1;
       // Footwork on one axis: horizontal input, plus vertical mapped to advance/
