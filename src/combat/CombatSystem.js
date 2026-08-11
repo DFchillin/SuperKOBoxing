@@ -90,28 +90,36 @@ export const CombatSystem = {
       }
     }
 
-    // Counter bonus: caught the defender mid-commitment.
-    const defenderCommitted =
-      defender.hands.left.phase !== 'idle' || defender.hands.right.phase !== 'idle';
+    // Reload model: a hand is a "loaded" defensive asset only while idle. Count
+    // how many of the defender's hands are still loaded.
+    const loaded =
+      (defender.hands.left.phase === 'idle' ? 1 : 0) +
+      (defender.hands.right.phase === 'idle' ? 1 : 0);
+    const defenderEmpty = loaded === 0; // both hands spent/reloading
+
+    // Counter bonus: caught the defender mid-commitment; landing on a fully EMPTY
+    // opponent (both hands reloading) is the signature punish.
     let counter = false;
-    if (defenderCommitted) {
-      dmg *= punch.counterBonus;
-      stun *= punch.counterBonus;
+    if (loaded < 2) {
+      const mult = defenderEmpty ? punch.counterBonus * 1.4 : punch.counterBonus;
+      dmg *= mult;
+      stun *= mult;
       counter = true;
     }
 
-    // High-guard block. High block covers the head well and the body poorly.
-    if (defender.blocking && !defender.handBusy('left') && !defender.handBusy('right')) {
+    // One-handed guard: holding block raises whatever hands are still loaded.
+    // Both loaded = full cover, one loaded = partial, empty = no guard at all.
+    if (defender.blocking && loaded > 0) {
       blocked = true;
-      const reduction = punch.target === 'head'
+      const cover = loaded / 2; // 0.5 (one hand) or 1.0 (both)
+      const reduction = (punch.target === 'head'
         ? Config.defence.blockDamageReduction
-        : Config.defence.blockDamageReduction * 0.5;
+        : Config.defence.blockDamageReduction * 0.5) * cover;
       dmg *= 1 - reduction;
       stun *= 1 - reduction;
       defender.guard = Math.max(0, defender.guard - Config.defence.blockGuardWear);
       StaminaSystem.spend(defender, Config.stamina.blockCostPerHit);
-      // Broken guard lets extra damage leak through.
-      if (defender.guard <= 0) dmg *= 1.4;
+      if (defender.guard <= 0) dmg *= 1.4; // broken guard leaks damage
     }
 
     // Record the punch and check for a completed combo (attacker side).

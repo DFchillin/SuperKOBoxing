@@ -85,6 +85,27 @@ html, body {
 
 .hud-kd { color: var(--red); font-size: 12px; margin-top: 2px; letter-spacing: 2px; }
 
+/* Reload / hand-ready pips: LOADED (green), LIVE (gold flash), RELOAD (blue fill). */
+.hud-hands {
+  display: flex; align-items: center; gap: 5px; margin-top: 4px;
+  font-size: 9px; letter-spacing: 1px; color: #b9c2e0;
+}
+.hud-fighter.right .hud-hands { flex-direction: row-reverse; }
+.pip {
+  width: 16px; height: 14px; border: 1px solid #2a3350; border-radius: 3px;
+  display: inline-grid; place-items: center; position: relative; isolation: isolate;
+  font-size: 9px; font-weight: 800; font-style: normal; color: #6b7392; background: #10152400;
+}
+.pip::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: var(--fill, 0%); background: currentColor; opacity: 0.5; z-index: -1;
+  transition: width 0.06s linear;
+}
+.pip.loaded { color: #6cff8a; border-color: #2f8f4a; }
+.pip.reload { color: #7fb0ff; border-color: #2a5cff; }
+.pip.live   { color: #ffd23f; border-color: var(--gold); animation: pip-flash 0.18s steps(2, jump-none) infinite; }
+@keyframes pip-flash { 50% { opacity: 0.55; } }
+
 .hud-centre { text-align: center; min-width: 90px; }
 .hud-round {
   font-size: 11px; letter-spacing: 2px; color: var(--gold);

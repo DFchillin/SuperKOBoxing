@@ -160,4 +160,36 @@ test('touch: a landed Touch interrupts an opponent’s punch startup', () => {
   } finally { Math.random = rnd; }
 });
 
+// Simulate a hand that has been thrown and is now reloading (not idle).
+function reloading(f, key) {
+  const h = f.hands[key];
+  h.phase = 'recovery'; h.punch = PUNCHES.left_jab; h.timer = 100;
+}
+
+function jabDrop(setup) {
+  const rnd = Math.random;
+  Math.random = () => 0.25; // land the jab, no knockdown
+  try {
+    const [a, b] = pair();
+    setup(b);
+    a.startPunch('left', PUNCHES.left_jab);
+    a.update(PUNCHES.left_jab.startupMs + 1);
+    const before = b.health;
+    CombatSystem.update([a, b], 100);
+    return before - b.health;
+  } finally { Math.random = rnd; }
+}
+
+test('guard: one-handed guard covers less than a full guard', () => {
+  const full = jabDrop((b) => { b.blocking = true; });                       // both loaded
+  const partial = jabDrop((b) => { b.blocking = true; reloading(b, 'right'); }); // one loaded
+  assert.ok(partial > full, 'one loaded hand should block less than two');
+});
+
+test('guard: an empty opponent takes the biggest punish', () => {
+  const loaded = jabDrop(() => {});                                          // both loaded, no block
+  const empty = jabDrop((b) => { reloading(b, 'left'); reloading(b, 'right'); }); // empty
+  assert.ok(empty > loaded, 'landing on an empty (both-reloading) opponent hits harder');
+});
+
 console.log(`\n${passed} passing`);

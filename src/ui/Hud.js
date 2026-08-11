@@ -40,6 +40,7 @@ export class Hud {
         <div class="hud-meter"><span>BODY</span><div class="bar body"><i id="${id}-body"></i></div></div>
         <div class="hud-meter"><span>STAM</span><div class="bar stam"><i id="${id}-stam"></i></div></div>
         <div class="hud-meter"><span>GRD</span><div class="bar grd"><i id="${id}-grd"></i></div></div>
+        <div class="hud-hands"><span>HANDS</span><i class="pip" id="${id}-hl">L</i><i class="pip" id="${id}-hr">R</i></div>
         <div class="hud-kd" id="${id}-kd"></div>
       </div>`;
   }
@@ -50,8 +51,22 @@ export class Hud {
       body: root.querySelector(`#${id}-body`),
       stam: root.querySelector(`#${id}-stam`),
       grd: root.querySelector(`#${id}-grd`),
+      hl: root.querySelector(`#${id}-hl`),
+      hr: root.querySelector(`#${id}-hr`),
       kd: root.querySelector(`#${id}-kd`),
     };
+  }
+
+  _pip(el, hand) {
+    // loaded (ready) / live (throwing) / reload (recovering, dim + filling).
+    const state = hand.phase === 'idle' ? 'loaded'
+      : hand.phase === 'recovery' ? 'reload' : 'live';
+    el.className = `pip ${state}`;
+    if (state === 'reload' && hand.punch) {
+      el.style.setProperty('--fill', `${(1 - hand.timer / hand.punch.recoveryMs) * 100}%`);
+    } else {
+      el.style.setProperty('--fill', state === 'loaded' ? '100%' : '0%');
+    }
   }
 
   _updateFighter(bars, f) {
@@ -62,6 +77,8 @@ export class Hud {
     bars.body.style.width = `${bodyLeft}%`;
     bars.stam.style.width = `${(f.stamina / Config.fighter.maxStamina) * 100}%`;
     bars.grd.style.width = `${(f.guard / Config.defence.guardMax) * 100}%`;
+    this._pip(bars.hl, f.hands.left);
+    this._pip(bars.hr, f.hands.right);
     bars.kd.textContent = f.knockdowns > 0 ? '● '.repeat(f.knockdowns).trim() : '';
   }
 
